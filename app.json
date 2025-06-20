@@ -7,22 +7,22 @@
   "stack": "heroku-24",
   "env": {
     "PREFIX": {
-      "description": "Enter your desired prefix for bot. You can set make sure it a single prefix `| . | .!*`",
-      "value": ".",
-      "required": true
+      "description": "Enter your desired prefix for bot leave blank for no prefix prefix `| . | .!*`",
+      "value": ", ! ^ . ?",
+      "required": false
     },
     "SESSION_ID": {
-      "description": "input bot session id here the one you received when you paired with Whatsapp",
+      "description": "input bot session id here the one you received when you paired with Whatsapp must start with either Ednut~ , Arch~ , Arch_",
       "value": "",
       "required": true
     },
-    "THUMB_IMAGE": {
-      "description": "This image will show when you used a v1/v3 menu you can get your image url from catbox",
+    "THUMB": {
+      "description": "This image will show when you used a v1/v2 menu type add your inage url for multiple images use , as split to send image randomly",
       "value": "https://files.catbox.moe/1uhvld.jpg",
       "required": false
     },
     "OWNER_NAME": {
-      "description": "put your bot owner nane here",
+      "description": "put your bot owner name here",
       "value": "Ednut",
       "required": false
     },
@@ -32,9 +32,9 @@
       "required": false
     },
     "MENU_TYPE": {
-      "description": "set your desired menu type v1 for thumbnail menu, v2 for no image and thumbnail v3 for only image menu",
-      "value": "v2",
-      "required": true
+      "description": "set your desired menu type 1 for only plain text, 2 for thumbnail menu 3 for only image menu leave blank to set to default",
+      "value": "",
+      "required": false
     },
     "BOT_NAME": {
       "description": "set your desired bot name.",
@@ -46,24 +46,69 @@
       "value": "2347036214381",
       "required": false
     },
+    "SUDO": {
+      "description": "The phone numbers of the users who you want to be sub admin for the bot for multiple number , as split (should be in international format without + \",\").",
+      "value": "2347036214381",
+      "required": false
+    },
+    "PACK_NAME": {
+      "description": "This would show as your sticker packname leave blank to use default",
+      "value": "",
+      "required": false
+    },
+     "REACT": {
+      "description": "To enable auto reaction when set to cmd it bring a reaction animation to plugin command but when set to all it send reaction to all messages leave blank to off",
+      "value": "",
+      "required": false
+    },
+      "MODE": {
+      "description": "Use this to set your bot mode to either public or private when in public everyone has access when it private only bot owner and sudo have access",
+      "value": "private",
+      "required": true
+    },
+      "CALL": {
+      "description": "to toggle anticall either to block caller when set to block and reject to reject call only leave blank to off",
+      "value": "",
+      "required": false
+    },
+      "STATUS": {
+      "description": "set true to make the bot automatically view your status",
+      "value": "false",
+      "required": false
+    },
+      "READ": {
+      "description": "Set true to make the bot automatically read your messages",
+      "value": "false",
+      "required": false
+    },
+      "WELCOME": {
+      "description": "To automatically turn on welcome message in all group",
+      "value": "false",
+      "required": false
+    },
+       "GOODBYE": {
+      "description": "To automatically turn on goodbye message in all group",
+      "value": "false",
+      "required": false
+    },
+     "AUTHOR": {
+      "description": "This would show as your sticker author leave blank to use default",
+      "value": "",
+      "required": false
+    },
     "WARN": {
-      "description": "how many times you want the bot should warn user before kick",
-      "value": "3",
+      "description": "how many times you want the bot should warn user before bot tke action",
+      "value": "5",
+      "required": false
+    },
+     "CONSOLE": {
+      "description": "turn on to let it display incoming message on console",
+      "value": "false",
       "required": false
     },
     "SYMBOL": {
       "description": "This will show as the bot symbol before the menu",
       "value": "♘",
-      "required": false
-    },
-    "ONLYGC_MSG": {
-      "description": "set your desired message when the bot mode is set to only group",
-      "value": "",
-      "required": false
-    },
-    "ONLYPC_MSG": {
-      "description": "set your desire message when the bot mode is set to only private chat",
-      "value": "",
       "required": false
     }
   },
