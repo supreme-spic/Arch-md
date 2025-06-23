@@ -46,8 +46,9 @@
 
 ## 📢 Official WhatsApp Channel
 
-📣 **Follow the ARCH-MD Support Channel:**  
-👉 [https://whatsapp.com/channel/0029VbAQfFGBVJl6W26JXy2n](https://whatsapp.com/channel/0029VbAQfFGBVJl6W26JXy2n)
+<a href="https://whatsapp.com/channel/0029VbAQfFGBVJl6W26JXy2n" target="_blank">
+  <img alt="WhatsApp Channel" src="https://img.shields.io/badge/Follow-WhatsApp%20Channel-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" />
+</a>
 
 ---
 
