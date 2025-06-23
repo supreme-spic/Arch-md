@@ -6,6 +6,9 @@
     "scripts": {
     "start": "node index.js"
   },
+     "engines": {
+     "node": "21.6.0"
+  },
   "author": "Ednut",
   "dependencies": {
     "@adiwajshing/keyed-db": "^0.2.4",
