@@ -9,7 +9,7 @@ const fs = require("fs")
 require('dotenv').config(); 
 
 //================= { SETTINGS } =================\\
-global.prefix = (process.env.PREFIX || ".").trim().split(/\s+/); // your desired prefix symbol only
+global.prefix = (process.env.PREFIX || "").trim().split(/\s+/); // your desired prefix symbol only
 global.owner = process.env.OWNER_NUMBER || "2347036214381"; // owner number , for multiple number
 global.sudo = process.env.SUDO  || "";
 global.ownername = process.env.OWNER_NAME || "Ednut"; //set bot owner name here 
@@ -41,11 +41,3 @@ global.msg = {
     gcban: 'sorry this group has been banned from using bot commands'
     }
 //==========================
-    
-let file = require.resolve(__filename);
-fs.watchFile(file, () => {
-fs.unwatchFile(file);
-console.log(`Update ${__filename}`);
-delete require.cache[file];
-require(file);
-});

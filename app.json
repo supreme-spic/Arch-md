@@ -16,6 +16,11 @@
       "value": "",
       "required": true
     },
+    "DATABASE_URL": {
+      "description": "input a database url you can use either postgresql or mognodb to save your bot changes and save your database check our youtube page for tutorials on how to",
+      "value": "",
+      "required": true
+    },
     "THUMB": {
       "description": "This image will show when you used a 2/3 menu type add your image url for multiple images use , as split to send image randomly leave blank to use default",
       "value": "",
