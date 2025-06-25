@@ -1,17 +1,11 @@
-const fs = require("fs");
-const path = require("path");
-
-const disabledCommandsPath = path.resolve(__dirname, "../../all/database/disabled.json");
 const protectedCommands = ["disable", "enable", "listdisabled", "menu"];
 
-// Helpers
 function loadDisabled() {
-  if (!fs.existsSync(disabledCommandsPath)) return [];
-  return JSON.parse(fs.readFileSync(disabledCommandsPath, "utf-8"));
+  return Array.isArray(global.db?.disabled) ? global.db.disabled : [];
 }
 
 function saveDisabled(data) {
-  fs.writeFileSync(disabledCommandsPath, JSON.stringify(data, null, 2));
+  if (global.db) global.db.disabled = data;
 }
 
 module.exports = [
@@ -30,7 +24,6 @@ module.exports = [
         return m.reply(`The *${cmd}* command is protected and cannot be disabled.`);
       }
 
-      // Get all valid commands and aliases
       const commandList = allCommands.flatMap(c =>
         Array.isArray(c.command) ? c.command : [c.command]
       ).concat(

@@ -5,16 +5,28 @@ module.exports = {
   alias: ["readviewonce"],
   description: "Resend view-once image/video/audio to yourself or a set private JID",
   category: "Tool",
-  async execute(m, { ednut, isMedia, prefix, command }) {
-    let target = process.env.VV || m.chat;
-    // Prevent using group JID as redirect
-    if (process.env.VV && isGroupJid(process.env.VV)) {
-      return m.reply("The VV environment variable cannot be a group JID.");
+  async execute(m, { ednut, prefix, command, botNumber }) {
+    // Determine target JID:
+    // 1. env VV if set and not group,
+    // 2. botNumber,
+    // 3. fallback to current chat
+    let target;
+
+    if (process.env.VV && !isGroupJid(process.env.VV)) {
+      target = process.env.VV;
+    } else if (botNumber) {
+      target = botNumber;
+    } else {
+      target = m.chat;
     }
 
-    // Must quote a message
+    if (process.env.VV && isGroupJid(process.env.VV)) {
+      await m.reply("The VV environment variable cannot be a group JID. Using bot number instead.");
+    }
+
     if (!m.quoted || !m.quoted.mimetype) {
-      return m.reply(`Reply to an image, video, or audio with the caption ${prefix + command}`);
+      await m.reply(`Reply to an image, video, or audio with the caption ${prefix + command}`);
+      return;
     }
 
     const mime = m.quoted.mimetype;
@@ -38,17 +50,18 @@ module.exports = {
       } else if (/audio/.test(mime)) {
         await ednut.sendMessage(target, {
           audio: media,
-          mimetype: 'audio/mpeg',
+          mimetype: mime || 'audio/mpeg',
           ptt: true
         }, { quoted: m });
 
       } else {
-        return m.reply(`Unsupported media type. Reply to image, video, or audio.`);
+        await m.reply(`Unsupported media type. Reply to image, video, or audio.`);
+        return;
       }
 
     } catch (err) {
-      console.error("VV error:", err);
-      m.reply("Failed to process media.");
+      if (global.log) global.log("ERROR", `vv plugin: ${err.message || err}`);
+      await m.reply("Failed to process media.");
     }
   }
 };

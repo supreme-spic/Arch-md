@@ -36,7 +36,7 @@ async function createSticker(url, pack, author) {
       categories: [""]
     }).build();
   } catch (err) {
-    console.error("Sticker creation error:", err);
+    global.log("ERROR", `Sticker creation error: ${err.message || err}`);
     throw "Failed to create sticker";
   }
 }
@@ -46,8 +46,8 @@ module.exports = {
   command: ["smeme"],
   description: "Create a sticker meme from an image and text",
   category: "Converter",
-    ban: true,
-    gcban: true,
+  ban: true,
+  gcban: true,
   execute: async (m, { text, ednut }) => {
     try {
       const teks = text.split("|");
@@ -73,7 +73,7 @@ module.exports = {
         m.reply("Failed to create sticker.");
       }
     } catch (err) {
-      console.error("Smeme command error:", err);
+      global.log("ERROR", `Smeme command error: ${err.message || err}`);
       m.reply("Error processing sticker meme.");
     }
   }

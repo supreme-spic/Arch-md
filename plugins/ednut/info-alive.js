@@ -6,50 +6,67 @@ module.exports = [
     ban: true,
     gcban: true,
     execute: async (m, { ednut, runtime, getQuote }) => {
-      if (!global.db.settings.aliveTemplate) return m.reply('No alive message set! Use setalive to set one and get more info.');
-      const aliveMsg = global.db.settings.aliveTemplate
-        .replace(/#alive/g, runtime(process.uptime()))
-        .replace(/#quote/g, await getQuote());
-      if (global.db.settings.aliveUrl) {
-        ednut.sendMessage(m.chat, {
-          [global.db.settings.aliveType]: {
-            url: global.db.settings.aliveUrl
-          },
-          caption: aliveMsg
-        });
-      } else {
-        m.reply(aliveMsg);
+      try {
+        const settings = global.db.settings;
+        if (!settings.aliveTemplate) {
+          return m.reply('❌ No alive message set!\nUse *setalive* to set one.');
+        }
+
+        const aliveMsg = settings.aliveTemplate
+          .replace(/#alive/g, runtime(process.uptime()))
+          .replace(/#quote/g, await getQuote());
+
+        const urls = settings.aliveUrls || [];
+
+        if (urls.length > 0) {
+          const randomUrl = urls[Math.floor(Math.random() * urls.length)];
+          const mediaType = randomUrl.toLowerCase().endsWith(".mp4") ? "video" : "image";
+
+          await ednut.sendMessage(m.chat, {
+            [mediaType]: { url: randomUrl },
+            caption: aliveMsg.trim()
+          }, { quoted: m });
+        } else {
+          await m.reply(aliveMsg.trim());
+        }
+      } catch (err) {
+        global.log?.("ERROR", `alive command error: ${err.message || err}`);
+        m.reply("❌ Failed to send alive message.");
       }
     }
   },
+
   {
     command: ["setalive"],
-    description: "Set alive message",
+    description: "Set custom alive message with optional image or video URLs",
     category: "Owner",
     ban: true,
     gcban: true,
     owner: true,
-    execute: async (m, { ednut, text, prefix, isOwner, isGroup }) => {
-      if (m.text === `${prefix}setalive`) {
-        return m.reply(`Usage: ${prefix}setalive <message>\nExample: ${prefix}setalive #alive for runtime #quote for random quote\nYou can also add an image or video url at the end.`);
+    execute: async (m, { text, prefix }) => {
+      try {
+        const args = text.trim();
+        if (!args) {
+          return m.reply(`Usage:\n${prefix}setalive <message with optional URLs>\n\nTags:\n#alive = bot uptime\n#quote = random quote`);
+        }
+
+        // Extract media URLs
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+        const urls = args.match(urlRegex) || [];
+
+        global.db.settings.aliveTemplate = args.replace(urlRegex, "").trim();
+
+        if (urls.length > 0) {
+          global.db.settings.aliveUrls = urls;
+        } else {
+          delete global.db.settings.aliveUrls;
+        }
+
+        m.reply(`✅ Alive message saved.\nMedia links: ${urls.length}`);
+      } catch (err) {
+        global.log?.("ERROR", `setalive error: ${err.message || err}`);
+        m.reply("❌ Failed to set alive message.");
       }
-      const args = m.text.split(' ').slice(1).join(' ');
-      if (!args.trim()) {
-        return m.reply(`Please provide a message with ${prefix}setalive #alive for runtime #quote for random quote add image or video url (alternative)`);
-      }
-      global.db.settings.aliveTemplate = args;
-      const urlRegex = /(https?:\/\/[^\s]+)/;
-      const urlMatch = global.db.settings.aliveTemplate.match(urlRegex);
-      if (urlMatch) {
-        const url = urlMatch[0];
-        global.db.settings.aliveUrl = url;
-        global.db.settings.aliveType = url.toLowerCase().endsWith('.mp4') ? 'video' : 'image';
-        global.db.settings.aliveTemplate = global.db.settings.aliveTemplate.replace(url, '');
-      } else {
-        delete global.db.settings.aliveUrl;
-        delete global.db.settings.aliveType;
-      }
-      m.reply('_Alive message set!_');
     }
   }
-]
+];

@@ -1,17 +1,11 @@
-const fs = require("fs");
-const path = require("path");
+const protectedKey = 'setsudo';
 
-const sudoPath = path.join(__dirname, "../../all/database/setsudo.json");
-
-// Load the latest sudo list from file
 function loadSudoList() {
-  if (!fs.existsSync(sudoPath)) return [];
-  return JSON.parse(fs.readFileSync(sudoPath));
+  return Array.isArray(global.db?.[protectedKey]) ? global.db[protectedKey] : [];
 }
 
-// Save the sudo list to file
-function saveSudoList(list) {
-  fs.writeFileSync(sudoPath, JSON.stringify(list, null, 2));
+function saveSudoList(data) {
+  global.db[protectedKey] = data;
 }
 
 module.exports = [
@@ -25,7 +19,7 @@ module.exports = [
     owner: true,
     execute: async (m, { text, ednut }) => {
       const setsudo = loadSudoList();
-      const target = m.mentionedJid?.[0] 
+      const target = m.mentionedJid?.[0]
         || (text ? text.replace(/[^0-9]/g, "") + "@s.whatsapp.net" : "")
         || m.quoted?.sender;
 
@@ -87,15 +81,15 @@ module.exports = [
     ban: true,
     gcban: true,
     owner: true,
-    execute: async (m, { text, ednut }) => {
+    execute: async (m, { ednut }) => {
       const setsudo = loadSudoList();
-      if (setsudo.length === 0) {
+      if (!setsudo || setsudo.length === 0) {
         return await ednut.sendMessage(m.chat, {
           text: "No sudo numbers configured.",
         }, { quoted: m });
       }
 
-      const list = `Current Sudo Numbers:\n\n${setsudo.map(jid => `• @${jid.split("@")[0]}`).join("\n")}`;
+      const list = `*Current Sudo Numbers:*\n\n${setsudo.map(jid => `• @${jid.split("@")[0]}`).join("\n")}`;
 
       await ednut.sendMessage(m.chat, {
         text: list,

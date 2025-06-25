@@ -5,24 +5,30 @@ module.exports = [
     category: "Group",
     group: true,
     execute: async (m, { ednut, isBotAdmins, isAdmins, isOwner }) => {
-          if (!(isAdmins || isOwner)) return m.reply(msg.admin);
-      if (!isBotAdmins) return m.reply(msg.botAdmin)
-      const response = await ednut.groupRequestParticipantsList(m.chat);
-      if (!response || !response.length) {
-        return ednut.sendMessage(m.chat, { text: 'No pending join requests.' }, { quoted: m });
+      try {
+        if (!(isAdmins || isOwner)) return m.reply(msg.admin);
+        if (!isBotAdmins) return m.reply(msg.botAdmin);
+
+        const response = await ednut.groupRequestParticipantsList(m.chat);
+        if (!response || response.length === 0) {
+          return ednut.sendMessage(m.chat, { text: "No pending join requests." }, { quoted: m });
+        }
+
+        let replyMessage = `° Join Request List:\n`;
+        response.forEach((request, index) => {
+          const { jid, request_method, request_time } = request;
+          const formattedTime = new Date(parseInt(request_time) * 1000).toLocaleString();
+          replyMessage += `\nNo. ${index + 1}`;
+          replyMessage += `\nJID: ${jid}`;
+          replyMessage += `\nMethod: ${request_method}`;
+          replyMessage += `\nTime: ${formattedTime}\n`;
+        });
+
+        await ednut.sendMessage(m.chat, { text: replyMessage }, { quoted: m });
+      } catch (err) {
+        m.reply("Failed to fetch requests.");
+        global.log?.("ERROR", `request error: ${err.message || err}`);
       }
-
-      let replyMessage = `° Join Request List:\n`;
-      response.forEach((request, index) => {
-        const { jid, request_method, request_time } = request;
-        const formattedTime = new Date(parseInt(request_time) * 1000).toLocaleString();
-        replyMessage += `\nNo. ${index + 1}`;
-        replyMessage += `\nJID: ${jid}`;
-        replyMessage += `\nMethod: ${request_method}`;
-        replyMessage += `\nTime: ${formattedTime}\n`;
-      });
-
-      await ednut.sendMessage(m.chat, { text: replyMessage }, { quoted: m });
     }
   },
 
@@ -31,10 +37,11 @@ module.exports = [
     description: "Approve all pending group join requests",
     category: "Group",
     group: true,
-    execute: async (m, { ednut, isBotAdmins, isAdmins,  isOwner}) => {
-          if (!(isAdmins || isOwner)) return m.reply(msg.admin);
-      if (!isBotAdmins) return m.reply(msg.botAdmin)
+    execute: async (m, { ednut, isBotAdmins, isAdmins, isOwner }) => {
       try {
+        if (!(isAdmins || isOwner)) return m.reply(msg.admin);
+        if (!isBotAdmins) return m.reply(msg.botAdmin);
+
         const pending = await ednut.groupRequestParticipantsList(m.chat);
         if (!pending || pending.length === 0) {
           return m.reply("No pending participants.");
@@ -56,59 +63,65 @@ module.exports = [
           mentions: approvedList
         });
       } catch (err) {
-        await m.reply(err.toString());
+        m.reply("Failed to approve.");
+        global.log?.("ERROR", `approve error: ${err.message || err}`);
       }
     }
   },
-{
-  command: ["reject"],
-  description: "Reject a specific user or all pending join requests",
-  category: "Group",
-  group: true,
-  botAdmin: true,
-  admin: true,
-  execute: async (m, { ednut, isBotAdmins, isAdmins, text, isOwner }) => {
+
+  {
+    command: ["reject"],
+    description: "Reject a specific user or all pending join requests",
+    category: "Group",
+    group: true,
+    botAdmin: true,
+    admin: true,
+    execute: async (m, { ednut, isBotAdmins, isAdmins, isOwner, text }) => {
+      try {
         if (!(isAdmins || isOwner)) return m.reply(msg.admin);
-      if (!isBotAdmins) return m.reply(msg.botAdmin)
-    try {
-      const input = text.trim();
+        if (!isBotAdmins) return m.reply(msg.botAdmin);
 
-      // Reject specific JID
-      if (input) {
-        const jid = input.includes("@s.whatsapp.net") ? input : input.replace(/[^0-9]/g, "") + "@s.whatsapp.net";
+        const input = text.trim();
 
-        try {
-          await ednut.groupRequestParticipantsUpdate(m.chat, [jid], "reject");
-          return m.reply(`Rejected: @${jid.split("@")[0]}`, { mentions: [jid] });
-        } catch (err) {
-          return m.reply("Failed to reject that user. Maybe not in pending list?");
+        // Reject specific user
+        if (input) {
+          const jid = input.includes("@s.whatsapp.net")
+            ? input
+            : input.replace(/[^0-9]/g, "") + "@s.whatsapp.net";
+
+          try {
+            await ednut.groupRequestParticipantsUpdate(m.chat, [jid], "reject");
+            return m.reply(`Rejected: @${jid.split("@")[0]}`, { mentions: [jid] });
+          } catch (err) {
+            return m.reply("Failed to reject user or user not in pending list.");
+          }
         }
+
+        // Reject all pending
+        const pending = await ednut.groupRequestParticipantsList(m.chat);
+        if (!pending || pending.length === 0) {
+          return m.reply("No pending participants.");
+        }
+
+        let rejectedList = [];
+        let message = "Rejected users:\n\n";
+
+        for (const user of pending) {
+          try {
+            await ednut.groupRequestParticipantsUpdate(m.chat, [user.jid], "reject");
+            message += `@${user.jid.split("@")[0]}\n`;
+            rejectedList.push(user.jid);
+          } catch {}
+        }
+
+        await ednut.sendMessage(m.chat, {
+          text: message,
+          mentions: rejectedList
+        });
+      } catch (err) {
+        m.reply("Failed to reject.");
+        global.log?.("ERROR", `reject error: ${err.message || err}`);
       }
-
-      // Reject ALL pending
-      const pending = await ednut.groupRequestParticipantsList(m.chat);
-      if (!pending || pending.length === 0) {
-        return m.reply("No pending participants.");
-      }
-
-      let rejectedList = [];
-      let message = "Rejected users:\n\n";
-
-      for (const user of pending) {
-        try {
-          await ednut.groupRequestParticipantsUpdate(m.chat, [user.jid], "reject");
-          message += `@${user.jid.split("@")[0]}\n`;
-          rejectedList.push(user.jid);
-        } catch {}
-      }
-
-      await ednut.sendMessage(m.chat, {
-        text: message,
-        mentions: rejectedList
-      });
-    } catch (err) {
-      await m.reply("Error: " + err.toString());
     }
   }
-}
 ];

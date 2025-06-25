@@ -13,30 +13,28 @@ module.exports = [
     }
   },
   {
-  command: ["lyrics"],
-  description: "Fetch song lyrics by title",
-  category: "Tool",
-  ban: true,
-  gcban: true,
-  execute: async (m, { text, ednut, msg, fetch }) => {
-    try {
-      // Extract song title from text
-      const title = text.trim();
-      if (!title) return m.reply("Please provide a song title");
+    command: ["lyrics"],
+    description: "Fetch song lyrics by title",
+    category: "Tool",
+    ban: true,
+    gcban: true,
+    execute: async (m, { text, ednut, msg, fetch }) => {
+      try {
+        const title = text.trim();
+        if (!title) return m.reply("Please provide a song title");
 
-      // Fetch lyrics
-      let res = await fetch(`https://api-versevibe.zone.id/versev2/lyrics?title=${encodeURIComponent(title)}&apikey=AbroCodesf9Dg7`);
-      let data = await res.json();
+        let res = await fetch(`https://api-versevibe.zone.id/versev2/lyrics?title=${encodeURIComponent(title)}&apikey=AbroCodesf9Dg7`);
+        let data = await res.json();
 
-      if (!data?.lyrics) return m.reply("_Lyrics not found_");
-      m.reply(data.lyrics);
+        if (!data?.lyrics) return m.reply("_Lyrics not found_");
+        m.reply(data.lyrics);
 
-    } catch (e) {
-      m.reply("Error fetching lyrics.");
-      console.error("Lyrics command error:", e);
+      } catch (err) {
+        global.log("ERROR", `lyrics plugin: ${err.message || err}`);
+        m.reply('Error occurred while fetching lyrics.');
+      }
     }
-  }
-},
+  },
   {
     command: ["trackip"],
     description: "Track IP address information",
@@ -59,7 +57,8 @@ module.exports = [
         await new Promise(resolve => setTimeout(resolve, 2000));
         m.reply(info);
 
-      } catch (e) {
+      } catch (err) {
+        global.log("ERROR", `trackip plugin: ${err.message || err}`);
         m.reply(`Error: Unable to retrieve data for IP ${text}`);
       }
     }
@@ -89,8 +88,13 @@ module.exports = [
 
       if (text.length > 200) return m.reply("Text must be under 200 characters.");
 
-      const url = googleTTS.getAudioUrl(text, { lang: voiceLanguage, slow: speed, host: 'https://translate.google.com' });
-      await ednut.sendMessage(m.chat, { audio: { url }, mimetype: 'audio/mpeg', ptt: true }, { quoted: m });
+      try {
+        const url = googleTTS.getAudioUrl(text, { lang: voiceLanguage, slow: speed, host: 'https://translate.google.com' });
+        await ednut.sendMessage(m.chat, { audio: { url }, mimetype: 'audio/mpeg', ptt: true }, { quoted: m });
+      } catch (err) {
+        global.log("ERROR", `tts plugin: ${err.message || err}`);
+        m.reply('Error occurred while converting text to speech.');
+      }
     }
   },
   {
@@ -102,11 +106,16 @@ module.exports = [
     gcban: true,
     execute: async (m, { ednut, getDevice }) => {
       if (!m.quoted) return m.reply("Reply to a chat to get device info");
-      const device = await getDevice(m.quoted.id);
-      await ednut.sendMessage(m.chat, {
-        text: `@${m.quoted.sender.split('@')[0]} is using ${device}`,
-        contextInfo: { mentionedJid: [m.quoted.sender] }
-      }, { quoted: m });
+      try {
+        const device = await getDevice(m.quoted.id);
+        await ednut.sendMessage(m.chat, {
+          text: `@${m.quoted.sender.split('@')[0]} is using ${device}`,
+          contextInfo: { mentionedJid: [m.quoted.sender] }
+        }, { quoted: m });
+      } catch (err) {
+        global.log("ERROR", `device plugin: ${err.message || err}`);
+        m.reply('Error occurred while fetching device info.');
+      }
     }
   },
 ];

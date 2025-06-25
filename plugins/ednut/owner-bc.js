@@ -1,6 +1,6 @@
 module.exports = [
   {
-    command: "broadcast",
+    command: ["broadcast"],
     alias: ["advertise"],
     description: "Broadcast text or media to all groups",
     category: "Owner",
@@ -62,23 +62,28 @@ module.exports = [
         }
         m.reply(`_Broadcast sent to ${groupIds.length} group(s) successfully._`);
       } catch (err) {
-        console.error(err);
+        global.log("ERROR", `broadcast plugin: ${err.message || err}`);
         m.reply('Error occurred while sending broadcast.');
       }
     }
   },
 
   {
-    command: "logout",
+    command: ["logout"],
     description: "Logout bot from all devices",
     category: "Owner",
     ban: true,
     gcban: true,
     owner: true,
     execute: async (m, { ednut, isOwner, msg, sleep, isGroup }) => {
-      m.reply("Logging out all devices...");
-      await sleep(4000);
-      await ednut.logout();
+      try {
+        m.reply("Logging out all devices...");
+        await sleep(4000);
+        await ednut.logout();
+      } catch (err) {
+        global.log("ERROR", `logout plugin: ${err.message || err}`);
+        m.reply('Error occurred while logging out.');
+      }
     }
   }
 ];
