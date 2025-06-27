@@ -30,7 +30,7 @@ module.exports = {
       }
 
       const mediaType = m.quoted.mtype;
-      const footer = `${global.footer}`;
+      const footer = `\n\n${global.footer}`;
 
       if (mediaType === 'imageMessage') {
         await ednut.sendMessage(target, {
