@@ -3,65 +3,61 @@ const isGroupJid = jid => jid.endsWith('@g.us');
 module.exports = {
   command: ["vv"],
   alias: ["readviewonce"],
-  description: "Resend view-once image/video/audio to yourself or a set private JID",
+  description: "Resend view-once image/video/audio to a target or current chat",
   category: "Tool",
-  async execute(m, { ednut, prefix, command, botNumber }) {
-    // Determine target JID:
-    // 1. env VV if set and not group,
-    // 2. botNumber,
-    // 3. fallback to current chat
-    let target;
 
+  async execute(m, { ednut }) {
+    if (!m.quoted || !m.quoted.mtype) {
+      return m.reply("Reply to a view-once image, video, or voice note.");
+    }
+
+    // Determine target JID
+    let target;
     if (process.env.VV && !isGroupJid(process.env.VV)) {
       target = process.env.VV;
-    } else if (botNumber) {
-      target = botNumber;
     } else {
+      if (process.env.VV && isGroupJid(process.env.VV)) {
+        await m.reply("⚠️VV environment variable cannot be a group JID. Sending to current chat.");
+      }
       target = m.chat;
     }
 
-    if (process.env.VV && isGroupJid(process.env.VV)) {
-      await m.reply("The VV environment variable cannot be a group JID. Using bot number instead.");
-    }
-
-    if (!m.quoted || !m.quoted.mimetype) {
-      await m.reply(`Reply to an image, video, or audio with the caption ${prefix + command}`);
-      return;
-    }
-
-    const mime = m.quoted.mimetype;
-    const caption = m.quoted.msg?.caption || "";
-
     try {
-      const media = await m.quoted.download();
+      const mediaBuffer = await m.quoted.download();
 
-      if (/image/.test(mime)) {
+      if (!mediaBuffer) {
+        return m.reply("Failed to download media.");
+      }
+
+      const mediaType = m.quoted.mtype;
+      const footer = `${global.footer}`;
+
+      if (mediaType === 'imageMessage') {
         await ednut.sendMessage(target, {
-          image: media,
-          caption
+          image: mediaBuffer,
+          caption: "*🖼️ View-once image unlocked.*" + footer
         }, { quoted: m });
 
-      } else if (/video/.test(mime)) {
+      } else if (mediaType === 'videoMessage') {
         await ednut.sendMessage(target, {
-          video: media,
-          caption
+          video: mediaBuffer,
+          caption: "*🎥 View-once video unlocked.*" + footer
         }, { quoted: m });
 
-      } else if (/audio/.test(mime)) {
+      } else if (mediaType === 'audioMessage') {
         await ednut.sendMessage(target, {
-          audio: media,
-          mimetype: mime || 'audio/mpeg',
+          audio: mediaBuffer,
+          mimetype: 'audio/ogg',
           ptt: true
         }, { quoted: m });
 
       } else {
-        await m.reply(`Unsupported media type. Reply to image, video, or audio.`);
-        return;
+        return m.reply("Unsupported media type. Use on image, video, or voice note.");
       }
 
     } catch (err) {
-      if (global.log) global.log("ERROR", `vv plugin: ${err.message || err}`);
-      await m.reply("Failed to process media.");
+      log("ERROR", `vv plugin: ${err.message || err}`);
+      return m.reply("Error while processing media.");
     }
   }
 };
