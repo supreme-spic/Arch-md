@@ -10,7 +10,6 @@ module.exports = [
     execute: async (m, { ednut, isAdmins, isOwner, isBotAdmins }) => {
       try {
         if (!(isAdmins || isOwner)) return m.reply(msg.admin);
-        if (!isBotAdmins) return m.reply(msg.BotAdmin);
 
         const metadata = await ednut.groupMetadata(m.chat);
         const members = metadata.participants.map(p => p.id);
@@ -163,7 +162,6 @@ module.exports = [
     execute: async (m, { ednut, isAdmins, isOwner, isBotAdmins, text }) => {
       try {
         if (!(isAdmins || isOwner)) return m.reply(msg.admin);
-        if (!isBotAdmins) return m.reply(msg.BotAdmin);
         if (!text) return m.reply("Please provide a message. Example: .tag Hello!");
 
         const metadata = await ednut.groupMetadata(m.chat);
@@ -188,7 +186,6 @@ module.exports = [
     execute: async (m, { ednut, isAdmins, isOwner, isBotAdmins }) => {
       try {
         if (!(isAdmins || isOwner)) return m.reply(msg.admin);
-        if (!isBotAdmins) return m.reply(msg.BotAdmin);
 
         const metadata = await ednut.groupMetadata(m.chat);
         const participants = metadata.participants;
